@@ -1,0 +1,64 @@
+{
+  "name": "qmk-via-utils",
+  "version": "1.0.0",
+  "description": "A utility for QMK/VIA keyboard definition and save files.",
+  "author": "uk-taniyama",
+  "license": "GPL-3.0",
+  "type": "module",
+  "main": "./dist/lib/index.cjs",
+  "module": "./dist/lib/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "qmk-via-utils": "dist/cli.cjs"
+  },
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/uk-taniyama/qmk-via-utils.git"
+  },
+  "bugs": {
+    "url": "https://github.com/uk-taniyama/qmk-via-utils/issues"
+  },
+  "homepage": "https://github.com/uk-taniyama/qmk-via-utils#readme",
+  "scripts": {
+    "init-via-utils": "sh -e -x scripts/init-via-utils.sh",
+    "build:bin": "tsup",
+    "build:doc": "typedoc",
+    "build:readme": "tsx src/scripts/update-readme.ts",
+    "build": "npm-run-all build:bin build:doc build:readme",
+    "prepack": "npm-run-all lint build",
+    "help": "tsx src/cli.ts help",
+    "example": "sh -e -x scripts/update-example.sh",
+    "lint": "biome format --fix src && biome lint --fix src"
+  },
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "overrides": {
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@the-via/reader": "^1.9.0",
+    "ajv": "^6.12.6",
+    "commander": "^13.1.0",
+    "json-stringify-pretty-compact": "^4.0.0",
+    "lodash.partition": "^4.6.0",
+    "read-pkg": "^10.0.0",
+    "three": "^0.182.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.3.10",
+    "@types/lodash.partition": "^4.6.9",
+    "@types/node": "^25.0.3",
+    "@types/three": "^0.182.0",
+    "husky": "^9.1.7",
+    "npm-run-all": "^4.1.5",
+    "tsup": "^8.5.1",
+    "tsx": "^4.21.0",
+    "typedoc": "^0.28.15",
+    "typedoc-plugin-markdown": "^4.9.0",
+    "typescript": "^5.9.3"
+  }
+}

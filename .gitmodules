@@ -1,0 +1,3 @@
+[submodule "via-app"]
+	path = via-app
+	url = https://github.com/the-via/app
