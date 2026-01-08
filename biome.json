@@ -6,7 +6,11 @@
     "useIgnoreFile": false
   },
   "files": {
-    "ignoreUnknown": false
+    "includes": [
+      "**/*.ts",
+      "!**/qmk-schemes/*"
+    ],
+    "ignoreUnknown": true
   },
   "formatter": {
     "enabled": true,

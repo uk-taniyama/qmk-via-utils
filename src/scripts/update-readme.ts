@@ -24,21 +24,20 @@ generateFile(".", backupPath, input);
 const lines = input.split("\n");
 const output: string[] = [];
 
-
 let inHelp = false;
 lines.forEach((line) => {
-  if(inHelp) {
-    if(line==='```') {
+  if (inHelp) {
+    if (line === "```") {
       inHelp = false;
       output.push(line);
     }
     return;
   }
   output.push(line);
-  if(line.startsWith('```help')) {
+  if (line.startsWith("```help")) {
     output.push(execHelp(line.substring(3)));
     inHelp = true;
   }
-})
+});
 
-generateFile(".", readmePath, output.join('\n'));
+generateFile(".", readmePath, output.join("\n"));

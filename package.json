@@ -1,7 +1,7 @@
 {
   "name": "qmk-via-utils",
   "version": "1.0.0",
-  "description": "A utility for QMK/VIA keyboard definition and save files.",
+  "description": "CLI utilities for QMK and VIA",
   "author": "uk-taniyama",
   "license": "GPL-3.0",
   "type": "module",
@@ -54,6 +54,8 @@
     "@types/node": "^25.0.3",
     "@types/three": "^0.182.0",
     "husky": "^9.1.7",
+    "json-schema-to-typescript": "^15.0.4",
+    "json5": "^2.2.3",
     "npm-run-all": "^4.1.5",
     "tsup": "^8.5.1",
     "tsx": "^4.21.0",

@@ -1,8 +1,14 @@
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import prettyCompact from "json-stringify-pretty-compact";
+import json5 from "json5";
 
-export const stringify = (obj: unknown) =>
-  prettyCompact(obj, { indent: 2, maxLength: 200 });
+export const stringify = (obj: unknown, maxLength: number = 200) =>
+  prettyCompact(obj, { indent: 2, maxLength });
+
+export function loadJson5(path: string) {
+  const text = readFileSync(path, "utf-8");
+  return json5.parse(text);
+}
 
 export function generateFile(
   outputDir: string,
