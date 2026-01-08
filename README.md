@@ -16,14 +16,8 @@ Please refer to the [documentation](./docs) for library usage details.
 
 ### CLI
 
-```bash
-npx qmk-via-utils
-```
-
-### help
-
 ```help
-Usage: qmk-via-utils [options] [command]
+npx qmk-via-utils [options] [command]
 
 A utility for QMK/VIA keyboard definition and save files.
 
@@ -46,18 +40,19 @@ Commands:
 - Generate SVG images for each layer
 - Support for VIA V3 definitions
 
-```bash
-npx qmk-via-utils generate-docs <outputDir> <defPath> <savePath>
-```
+```help generate-docs
+npx qmk-via-utils generate-docs [options] <outputDir> <defPath> <savePath> [optionKeys]
 
-- `outputDir`: Directory to output the generated files (e.g., `./docs`)
-- `defPath`: Path to the VIA definition file (`.json`)
-- `savePath`: Path to the VIA save file (`.json`)
+Generate Markdown documentation for a keyboard
 
-Example:
+Arguments:
+  outputDir   Directory to output the generated files
+  defPath     Path to the VIA definition file (.json)
+  savePath    Path to the VIA save file (.json)
+  optionKeys  Comma-separated list of option keys or a preset name
 
-```bash
-npx qmk-via-utils generate-docs ./output ./keyboard-via.json ./save-via.json
+Options:
+  -h, --help  display help for command
 ```
 
 ## Credits

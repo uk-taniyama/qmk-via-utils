@@ -6,6 +6,10 @@ const pkg = readPackageSync();
 
 const program = new Command();
 
+if (process.env.HELP_WIDTH != null) {
+  program.configureHelp({ helpWidth: Number(process.env.HELP_WIDTH) });
+}
+
 program
   .name(pkg.name)
   .description(pkg.description || "CLI for QMK/VIA utilities")
