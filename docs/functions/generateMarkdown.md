@@ -8,7 +8,7 @@
 
 > **generateMarkdown**(`outputDir`, `def`, `saveFile`, `presetOrValues?`): `void`
 
-Defined in: dist/index.d.ts:45
+Defined in: dist/index.d.ts:47
 
 ## Parameters
 

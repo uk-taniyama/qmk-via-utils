@@ -33,7 +33,7 @@ export function loadVIADefinition(path: string) {
   if (isKeyboardDefinitionV3(json)) {
     return keyboardDefinitionV3ToVIADefinitionV3(json);
   }
-  throw new Error("Unsupported definition format");
+  throw new Error(`Unsupported definition format: ${path}`);
 }
 
 export function loadVIASaveFile(path: string) {
@@ -41,7 +41,7 @@ export function loadVIASaveFile(path: string) {
   if (isVIASaveFile(json)) {
     return json;
   }
-  throw new Error("Unsupported save file format");
+  throw new Error(`Unsupported save file format: ${path}`);
 }
 
 export function getOptionKeys(

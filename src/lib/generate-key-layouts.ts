@@ -1,3 +1,5 @@
+import { calculatePointPosition } from "../../via-utils/keyboard-rendering";
+import { config } from "./config";
 import { escapeHtml, generateFile } from "./utils";
 import {
   collectEncoders,
@@ -9,46 +11,88 @@ import {
   loadVIADefinition,
   loadVIASaveFile,
   type VIADefinitionV3,
+  type VIAKey,
   type VIASaveFile,
 } from "./via-utils";
 
-const keyUnit = 32;
-
 export function generateSvgForKey(svg: string[], keyInfo: KeyInfo) {
+  const { keyWidth, keyHeight, keyFill, keyStroke, keyFontSize, keyFontColor } =
+    config;
   const { key, code, label } = keyInfo;
   const encoder = key.ei != null;
-  const x = key.x * keyUnit;
-  const y = key.y * keyUnit;
-  const w = key.w * keyUnit;
-  const h = key.h * keyUnit;
-  const c = "white";
+  const w = key.w * keyWidth;
+  const h = key.h * keyHeight;
   const t = label?.label || label?.key || code;
   const topLabel = label?.topLabel;
   const bottomLabel = label?.bottomLabel;
   const tooltip = label?.tooltip;
   const rx = encoder ? w / 2 : 4;
   const ry = encoder ? h / 2 : 4;
+  const [ox, oy] = calculatePointPosition(key);
 
-  svg.push("<g>");
+  svg.push(
+    `<g transform="translate(${ox} ${oy}) rotate(${key.r}) translate(${-w / 2} ${-h / 2})">`,
+  );
   if (tooltip) {
     svg.push(`<title>${escapeHtml(tooltip)}</title>`);
   }
   svg.push(
-    `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${rx}" ry="${ry}" fill="${c}" stroke="black" stroke-width="1" />`,
+    `<rect width="${w}" height="${h}" rx="${rx}" ry="${ry}" fill="${keyFill}" stroke="${keyStroke}" stroke-width="1" />`,
   );
   if (topLabel != null && bottomLabel != null) {
     svg.push(
-      `<text x="${x + w / 2}" y="${y + h / 2 - 3}" font-size="8" text-anchor="middle" fill="black">${escapeHtml(topLabel)}</text>`,
+      `<text x="${w / 2}" y="${h / 2 - keyFontSize / 2}" font-size="${keyFontSize}" text-anchor="middle" fill="${keyFontColor}">${escapeHtml(topLabel)}</text>`,
     );
     svg.push(
-      `<text x="${x + w / 2}" y="${y + h / 2 + 10}" font-size="8" text-anchor="middle" fill="black">${escapeHtml(bottomLabel)}</text>`,
+      `<text x="${w / 2}" y="${h / 2 + keyFontSize}" font-size="${keyFontSize}" text-anchor="middle" fill="${keyFontColor}">${escapeHtml(bottomLabel)}</text>`,
     );
   } else {
     svg.push(
-      `<text x="${x + w / 2}" y="${y + h / 2 + 4}" font-size="8" text-anchor="middle" fill="black">${escapeHtml(t)}</text>`,
+      `<text x="${w / 2}" y="${h / 2 + keyFontSize / 2}" font-size="${keyFontSize}" text-anchor="middle" fill="${keyFontColor}">${escapeHtml(t)}</text>`,
     );
   }
   svg.push("</g>");
+}
+
+export function generateLayoutSvgInner(
+  outputDir: string,
+  svgName: string,
+  layer: string[],
+  keys: VIAKey[],
+  def: VIADefinitionV3,
+  macros: string[],
+) {
+  const { keyWidth, keyHeight, keySpacing } = config;
+  const w = def.layouts.width;
+  const h = def.layouts.height;
+  const uw = keyWidth + keySpacing;
+  const uh = keyHeight + keySpacing;
+
+  const svg: string[] = [
+    '<?xml version="1.0"?>',
+    `<svg width="${(w + 1) * uw}" height="${(h + 1) * uh}" xmlns="http://www.w3.org/2000/svg">`,
+    `<g transform="translate(${uw / 2},${uh / 2})">`,
+  ];
+  keys.forEach((key) => {
+    const keyInfo = convertKey(key, layer, def, macros);
+    generateSvgForKey(svg, keyInfo);
+  });
+  svg.push("</g></svg>");
+  generateFile(outputDir, svgName, svg.join("\n"));
+}
+
+export function generateLayoutSvg(
+  outputDir: string,
+  svgName: string,
+  def: VIADefinitionV3,
+  saveFile: VIASaveFile,
+  layerIndex: number,
+  presetOrValues?: string,
+) {
+  const layer = saveFile.layers[layerIndex];
+  const keys = collectKeys(def, presetOrValues);
+  const macros = saveFile.macros || [];
+  generateLayoutSvgInner(outputDir, svgName, layer, keys, def, macros);
 }
 
 export function generateMarkdown(
@@ -57,8 +101,6 @@ export function generateMarkdown(
   saveFile: VIASaveFile,
   presetOrValues?: string,
 ) {
-  const w = def.layouts.width;
-  const h = def.layouts.height;
   const layers = saveFile.layers.length;
   const macros = saveFile.macros || [];
   const vendorProductId = def.vendorProductId
@@ -114,20 +156,9 @@ export function generateMarkdown(
 
   saveFile.layers.forEach((layer, layerIndex) => {
     const svgName = `layer${layerIndex}.svg`;
+    generateLayoutSvgInner(outputDir, svgName, layer, keys, def, macros);
 
     md.push(`## Layer ${layerIndex}`, "", `![${svgName}](${svgName})`, "");
-
-    const svg: string[] = [
-      '<?xml version="1.0"?>',
-      `<svg width="${(w + 1) * keyUnit}" height="${(h + 1) * keyUnit}" xmlns="http://www.w3.org/2000/svg">`,
-      `<g transform="translate(${keyUnit / 2},${keyUnit / 2})">`,
-    ];
-    keys.forEach((key) => {
-      const keyInfo = convertKey(key, layer, def, macros);
-      generateSvgForKey(svg, keyInfo);
-    });
-    svg.push("</g></svg>");
-    generateFile(outputDir, svgName, svg.join("\n"));
 
     const encoders = collectEncoders(saveFile, layerIndex);
     if (encoders && encoders.length > 0) {
@@ -146,7 +177,7 @@ export function generateMarkdown(
   generateFile(outputDir, "README.md", md.join("\n"));
 }
 
-export function generateKeyboardDocs(
+export function generateKeyLayouts(
   outputDir: string,
   defPath: string,
   savePath: string,
