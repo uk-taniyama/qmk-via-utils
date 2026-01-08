@@ -1,6 +1,6 @@
 {
   "name": "qmk-via-utils",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "CLI utilities for QMK and VIA",
   "author": "uk-taniyama",
   "license": "GPL-3.0",
