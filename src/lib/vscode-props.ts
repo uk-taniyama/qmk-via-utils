@@ -1,6 +1,7 @@
 import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { loadJson5 } from "./utils";
 import { parse } from "shell-quote";
+import uniq from "lodash.uniq";
 
 function cleanPathSegments(path: string): string {
   return path
@@ -35,20 +36,20 @@ function findPathInWorkspace(
 }
 
 function findPathSetInWorkspace(
-  pathSet: Set<string>,
+  pathSet: Iterable<string>,
   workspaceDir: string,
   searchDirs: string[],
 ) {
-  const result = new Set<string>();
-  pathSet.forEach((path) => {
+  const result: string[] = [];
+  for (const path of pathSet) {
     const foundPath = findPathInWorkspace(path, workspaceDir, searchDirs);
     if (!foundPath) {
       console.warn(`Not found: ${path}`);
-      return;
+      continue;
     }
-    result.add(foundPath);
-  });
-  return result;
+    result.push(foundPath);
+  }
+  return uniq(result);
 }
 
 const defaultJson = {
@@ -117,35 +118,35 @@ export function updateCCppPropertiesFromCFlags(
 ) {
   const cflags = loadCFlags(cflagsPath);
 
-  const includes = new Set<string>();
-  const forcedIncludes = new Set<string>();
+  const includes: string[] = [];
+  const forcedIncludes: string[] = [];
   const defines = new Set<string>();
 
   searchDirs.forEach((searchDir) => {
-    includes.add(searchDir);
+    includes.push(searchDir);
   });
 
   for (let i = 0; i < cflags.length; i += 1) {
     const cflag = cflags[i];
     if (cflag.startsWith("-I")) {
-      includes.add(cleanPathSegments(cflag.substring(2)));
+      includes.push(cleanPathSegments(cflag.substring(2)));
     } else if (cflag.startsWith("-D")) {
       defines.add(cflag.substring(2));
     } else if (cflag === "-include") {
       i += 1;
       if (i < cflags.length) {
-        forcedIncludes.add(cleanPathSegments(cflags[i]));
+        forcedIncludes.push(cleanPathSegments(cflags[i]));
       }
     }
   }
 
   const config: ParsedCCppConfig = {
-    includePath: Array.from(
-      findPathSetInWorkspace(includes, workspaceDir, searchDirs),
-    ).sort(),
-    forcedInclude: Array.from(
-      findPathSetInWorkspace(forcedIncludes, workspaceDir, searchDirs),
-    ).sort(),
+    includePath: findPathSetInWorkspace(includes, workspaceDir, searchDirs),
+    forcedInclude: findPathSetInWorkspace(
+      forcedIncludes,
+      workspaceDir,
+      searchDirs,
+    ),
     defines: Array.from(defines).sort(),
   };
   updateCCppPropertiesJson(workspaceDir, config);
