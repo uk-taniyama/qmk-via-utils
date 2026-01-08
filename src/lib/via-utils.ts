@@ -3,7 +3,7 @@ import {
   isVIADefinitionV3,
   keyboardDefinitionV3ToVIADefinitionV3,
 } from "@the-via/reader";
-import type { VIADefinitionV3, VIAKey } from "@the-via/reader";
+import type { MatrixPosition, VIADefinitionV3, VIAKey } from "@the-via/reader";
 import { readFileSync } from "node:fs";
 import { getByteForCode, getByteToKey } from "../../via-utils/key";
 import basicKeyToByte from "../../via-utils/key-to-byte/default";
@@ -180,11 +180,12 @@ export function getLabelTextForCode(
 
 export function getCode(
   layer: string[],
-  key: VIAKey,
+  pos: MatrixPosition,
   def: VIADefinitionV3,
 ): string | undefined {
   const cols = def.matrix.cols;
-  const index = key.row * cols + key.col;
+  const { row, col } = pos;
+  const index = row * cols + col;
   const code = layer[index];
   return code;
 }

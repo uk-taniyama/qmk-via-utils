@@ -1,6 +1,7 @@
 import { Command } from "commander";
 import { readPackageSync } from "read-pkg";
 import { generateKeyLayouts, generateKeyboardSvg } from "./lib/index";
+import { generateKeymapC } from "./lib/generate-keymap-c";
 import { config, initConfig } from "./lib/config";
 import {
   listCFlagsPaths,
@@ -125,6 +126,30 @@ program
       updateCCppPropertiesFromCFlags(options.workspace, searchDirs, cflagsPath);
     });
   });
+
+program
+  .command("gen-keymap-c")
+  .description("Generate keymap.c from VIA files and QMK info.json")
+  .option("-C, --config <path>", "Path to a config file")
+  .argument("<outputDir>", "Output directory for generated files")
+  .argument("<infoPath>", "Path to the QMK info.json file")
+  .argument("<defPath>", "Path to the VIA definition file (.json)")
+  .argument("<savePath>", "Path to the VIA save file (.json)")
+  .argument("[layoutName]", "Name of the layout macro to use (optional)")
+  .action(
+    (
+      outputDir: string,
+      infoPath: string,
+      defPath: string,
+      savePath: string,
+      layoutName?: string,
+      options?: Options,
+    ) => {
+      run(options, () => {
+        generateKeymapC(outputDir, infoPath, defPath, savePath, layoutName);
+      });
+    },
+  );
 
 program
   .command("export-config")

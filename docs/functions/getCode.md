@@ -6,7 +6,7 @@
 
 # Function: getCode()
 
-> **getCode**(`layer`, `key`, `def`): `string` \| `undefined`
+> **getCode**(`layer`, `pos`, `def`): `string` \| `undefined`
 
 Defined in: dist/index.d.ts:30
 
@@ -16,9 +16,9 @@ Defined in: dist/index.d.ts:30
 
 `string`[]
 
-### key
+### pos
 
-[`VIAKey`](../type-aliases/VIAKey.md)
+`MatrixPosition`
 
 ### def
 
