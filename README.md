@@ -116,6 +116,7 @@ Arguments:
 Options:
   -w, --workspace <dir>     Workspace directory (default: ".")
   -s, --search-dirs <dirs>  Comma-separated search directories (default: ".,qmk_firmware")
+  -u, --userspace <path>    Path to replace /qmk_userspace with (default: ".")
   -h, --help                display help for command
 ```
 
