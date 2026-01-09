@@ -1,5 +1,5 @@
 import { Command } from "commander";
-import { readPackageSync } from "read-pkg";
+import { readPackageUpSync } from "read-package-up";
 import { generateKeyLayouts, generateKeyboardSvg } from "./lib/index";
 import { generateKeymapC } from "./lib/generate-keymap-c";
 import { config, initConfig } from "./lib/config";
@@ -8,12 +8,16 @@ import {
   updateCCppPropertiesFromCFlags,
 } from "./lib/vscode-props";
 
-const pkg = readPackageSync();
-
 const program = new Command();
 
 if (process.env.HELP_WIDTH != null) {
   program.configureHelp({ helpWidth: Number(process.env.HELP_WIDTH) });
+}
+
+const dirname = globalThis.__dirname || ".";
+const pkg = readPackageUpSync({ cwd: dirname })?.packageJson;
+if (pkg == null) {
+  throw new Error("Could not find package.json");
 }
 
 program
