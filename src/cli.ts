@@ -99,6 +99,7 @@ program
 interface GenVscodePropsOptions extends Options {
   workspace: string;
   searchDirs: string;
+  userspace: string;
 }
 
 program
@@ -112,6 +113,7 @@ program
     "Comma-separated search directories",
     ".,qmk_firmware",
   )
+  .option("-u, --userspace <path>", "Path to replace /qmk_userspace with", ".")
   .argument(
     "[cflagsPath]",
     "Path to cflags.txt (if omitted, available cflags files will be listed)",
@@ -123,7 +125,14 @@ program
         listCFlagsPaths(options.workspace, searchDirs);
         return;
       }
-      updateCCppPropertiesFromCFlags(options.workspace, searchDirs, cflagsPath);
+      updateCCppPropertiesFromCFlags(
+        {
+          workspaceDir: options.workspace,
+          searchDirs,
+          userspacePath: options.userspace,
+        },
+        cflagsPath,
+      );
     });
   });
 

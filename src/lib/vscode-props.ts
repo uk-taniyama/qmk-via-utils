@@ -1,7 +1,24 @@
-import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
-import { loadJson5 } from "./utils";
-import { parse } from "shell-quote";
+import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import uniq from "lodash.uniq";
+import { parse } from "shell-quote";
+import { loadJson5 } from "./utils";
+
+export interface WorkspaceConfig {
+  workspaceDir: string;
+  searchDirs: string[];
+  userspacePath: string;
+}
+
+function resolveUserspacePath(path: string, userspacePath: string) {
+  const prefix = "/qmk_userspace";
+  if (path === prefix) {
+    return userspacePath;
+  }
+  if (path.startsWith(`${prefix}/`)) {
+    return `${userspacePath}/${path.substring(prefix.length + 1)}`;
+  }
+  return path;
+}
 
 function cleanPathSegments(path: string): string {
   return path
@@ -21,28 +38,25 @@ function cleanPathSegments(path: string): string {
     .join("/");
 }
 
-function findPathInWorkspace(
-  path: string,
-  workspaceDir: string,
-  searchDirs: string[],
-) {
+function findPathInWorkspace(config: WorkspaceConfig, path: string) {
+  const { workspaceDir, searchDirs, userspacePath } = config;
+  const resolved = resolveUserspacePath(path, userspacePath);
   for (const searchDir of searchDirs) {
-    const fullPath = `${workspaceDir}/${searchDir}/${path}`;
+    const fullPath = `${workspaceDir}/${searchDir}/${resolved}`;
     if (existsSync(fullPath)) {
-      return `\${workspaceFolder}/${cleanPathSegments(`${searchDir}/${path}`)}`;
+      return `\${workspaceFolder}/${cleanPathSegments(`${searchDir}/${resolved}`)}`;
     }
   }
   return undefined;
 }
 
 function findPathSetInWorkspace(
+  config: WorkspaceConfig,
   pathSet: Iterable<string>,
-  workspaceDir: string,
-  searchDirs: string[],
 ) {
   const result: string[] = [];
   for (const path of pathSet) {
-    const foundPath = findPathInWorkspace(path, workspaceDir, searchDirs);
+    const foundPath = findPathInWorkspace(config, path);
     if (!foundPath) {
       console.warn(`Not found: ${path}`);
       continue;
@@ -112,10 +126,10 @@ function loadCFlags(inputPath: string) {
 }
 
 export function updateCCppPropertiesFromCFlags(
-  workspaceDir: string,
-  searchDirs: string[],
+  config: WorkspaceConfig,
   cflagsPath: string,
 ) {
+  const { workspaceDir, searchDirs } = config;
   const cflags = loadCFlags(cflagsPath);
 
   const includes: string[] = [];
@@ -140,16 +154,12 @@ export function updateCCppPropertiesFromCFlags(
     }
   }
 
-  const config: ParsedCCppConfig = {
-    includePath: findPathSetInWorkspace(includes, workspaceDir, searchDirs),
-    forcedInclude: findPathSetInWorkspace(
-      forcedIncludes,
-      workspaceDir,
-      searchDirs,
-    ),
+  const cCppConfig: ParsedCCppConfig = {
+    includePath: findPathSetInWorkspace(config, includes),
+    forcedInclude: findPathSetInWorkspace(config, forcedIncludes),
     defines: Array.from(defines).sort(),
   };
-  updateCCppPropertiesJson(workspaceDir, config);
+  updateCCppPropertiesJson(workspaceDir, cCppConfig);
 }
 
 export function listCFlagsPaths(workspace: string, searchDirs: string[]) {
@@ -169,6 +179,11 @@ export function listCFlagsPaths(workspace: string, searchDirs: string[]) {
         cflagsPaths.add(cleanPathSegments(cflagsPath));
       });
   });
+  if (cflagsPaths.size === 0) {
+    console.log("No cflags.txt files found.");
+    return;
+  }
+  console.log("Available cflags.txt files:");
   Array.from(cflagsPaths)
     .sort()
     .forEach((cflagsPath) => {
